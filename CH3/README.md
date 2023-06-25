@@ -79,6 +79,7 @@ var x []int
 
 >Go 是**以值呼叫**，因此傳入參數時，會被底層製作一個副本。
 
+[example](CH3/slice/main.go)
 ### make
 
 宣告長度為 5，容量為 5 的 int 型態 slice，且初始值都為 0。
@@ -91,3 +92,66 @@ x := make([]int, 5)
 ```go
 x := make([]int, 5, 10)
 ```
+
+再有宣告 `len` 時，再用 `append` 方式進行賦值，會是該 `len` 之後。除非使用 `len` 為 0，但大於 0 的容量。
+
+```go
+var z := make([]int, 0, 3)
+z = append(z, 10)
+log.Printf("value: %v", z) //  [10]
+```
+
+[example](CH3/make/main.go)
+
+### 切割 slice
+
+slice 運算式可以用 slice 來建立 slice。
+
+```go
+    x := []int{1, 2, 3, 4}
+	y := x[:2]
+	log.Printf("y value: %v", y)
+	z := x[1:]
+	log.Printf("z value: %v", z)
+	d := x[1:3]
+	log.Printf("d value: %v", d)
+	a := x[:]
+	log.Printf("a value: %v", a)
+// 2023/06/25 21:26:17 y value: [1 2]
+// 2023/06/25 21:26:17 z value: [2 3 4]
+// 2023/06/25 21:26:17 d value: [2 3]
+// 2023/06/25 21:26:17 a value: [1 2 3 4]
+```
+
+### slice 共用儲存
+從 slice 裡面取出的 slice 不會製作資料的複本，*而會得到兩個共享記憶體的變數*。因此變更會相互影響。
+
+```go
+    x := []int{1, 2, 3, 4}
+    x[1] = 20
+	y[0] = 10
+	z[2] = 30
+	log.Printf("x value: %v", x)
+	log.Printf("y value: %v", y)
+	log.Printf("z value: %v", z)
+// 2023/06/25 21:30:09 x value: [10 20 3 30]
+// 2023/06/25 21:30:09 y value: [10 20]
+// 2023/06/25 21:30:09 z value: [20 3 30]
+```
+
+如果經過 `slice` 切割後再用 `append` 增加元素，會變得很困惑
+
+```go
+	x1 := []int{1, 2, 3, 4}
+	y1 := x1[:2]
+	log.Printf("x1 Cap: %d, y1 Cap: %d", cap(x1), cap(y1))
+
+	y1 = append(y1, 30)
+	log.Printf("x1 value: %v", x1)
+	log.Printf("y1 value: %v", y1)
+// 2023/06/25 21:40:07 x1 Cap: 4, y1 Cap: 4
+// 2023/06/25 21:40:07 x1 value: [1 2 30 4]
+// 2023/06/25 21:40:07 y1 value: [1 2 30]
+```
+
+在共用儲存下，原始 slice 未使用的*容量*也會與子 slice 共用。以範例 `y1` slice 來說，該 slice 的容量是原始 slice 容量減去子 slice 在原始 slice 內的位移。
