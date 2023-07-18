@@ -286,3 +286,84 @@ var nilMap map[string]int
 ```go
 totalWins := map[string]int{}
 ```
+該 `totalWins` 與 `nil` map 不一樣，其長度是 0，因此該空 `map` 是可以被讀或寫。
+
+含有初始值的宣告，須注意最後的鍵值對也要 `,`
+
+```go
+	team := map[string][]string{
+		"a": []string{"Itachi", "Madara"},
+		"b": []string{"Kevin", "Bob"},
+		"c": []string{"Kitty", "Kathy"},
+	}
+```
+
+如果知道鍵值對要放入多少可以使用 `make` 來建立預設大小的 `map`
+
+```go
+ages := make(map[int][]string, 10)
+```
+
+>使用 make 建立的 `map` 預設長度是 0
+
+`map` 與 `slice` 相似處
+- map 會在你加入鍵值之後會自動擴增
+- 如果知道打算將多少對鍵值插入 map，你可以用 `make` 與初始大小來建立 map
+- 將 map 傳給 len 函式可取得 map 內有多少對鍵值
+- map 的零值是 `nil`
+- map 是不能比較。但可以檢查是否為 `nil`，而 `==` 和 `!=` 不能檢查兩 `map` 是否有一致鍵值
+
+>對於沒有順序資料要求可使用 map，元素順序重要可用 slice
+
+### 讀取寫入 map
+
+```go
+	totalWins := map[string]int{}
+	totalWins["Orcas"] = 1
+	totalWins["Lions"] = 2
+	log.Printf("Orcas: %d", totalWins["Orcas"])
+	log.Printf("Kittens: %d", totalWins["Kittens"])
+
+	totalWins["Kittens"]++
+	log.Printf("Kittens: %d", totalWins["Kittens"])
+	totalWins["Lions"] = 3
+	log.Printf("Lions: %d", totalWins["Lions"])
+// 2023/07/18 22:20:52 Orcas: 1
+// 2023/07/18 22:20:52 Kittens: 0
+// 2023/07/18 22:20:52 Kittens: 1
+// 2023/07/18 22:20:52 Lions: 3
+```
+
+> 對於 map 不能用 := 賦值
+
+### 逗號 ok
+
+透過*逗號 ok*可以檢查 map 中是否存在索引鍵
+
+```go
+	m := map[string]int{
+		"hello": 5,
+		"world": 0,
+	}
+	v, ok := m["hello"]
+	log.Printf("hello v is %d, key is %t", v, ok)
+
+	v, ok = m["golang"]
+	log.Printf("golang v is %d, key is %t", v, ok)
+// 2023/07/18 22:32:40 hello v is 5, key is true
+// 2023/07/18 22:32:40 golang v is 0, key is false
+```
+
+> 當要辨別讀取一個值與取回零值的時候，可使用逗號 ok 方式
+
+### 刪除 map 內容
+使用 `delete(map, key)` 函式
+```go
+	delete(m, "hello")
+
+	v, ok = m["hello"]
+	log.Printf("hello v is %d, key is %t", v, ok)
+// 2023/07/18 22:37:40 hello v is 0, key is false
+```
+
+假設 map 是 `nil` 或是鍵值不存在，什麼事都不會發生
