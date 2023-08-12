@@ -366,4 +366,152 @@ ages := make(map[int][]string, 10)
 // 2023/07/18 22:37:40 hello v is 0, key is false
 ```
 
-假設 map 是 `nil` 或是鍵值不存在，什麼事都不會發生
+*假設 map 是 `nil` 或是鍵值不存在，什麼事都不會發生*
+
+### map 當 set 
+`set` 確保每個值最多只有一個的資料型態，但沒有順序保證。
+
+>將許多元素加入 slice 再檢查 slice 裡面有沒有某個元素需要花更長的時間
+
+將 `map` 索引鍵當成 `set` 型態，並讓值使用 `bool`。
+
+```go
+func main() {
+	intSet := map[int]bool{}
+
+	vals := []int{5, 10, 2, 5, 8, 7, 3, 9, 1, 2, 10}
+
+	for _, v := range vals {
+		intSet[v] = true
+	}
+
+	log.Printf("vals len: %d, intSet len: %d", len(vals), len(intSet))
+	log.Print(intSet[5])
+	log.Print(intSet[500])
+	if intSet[100] {
+		log.Println("not in the set.")
+	}
+}
+// 2023/08/12 15:33:56 vals len: 11, intSet len: 8
+// 2023/08/12 15:33:56 true
+// 2023/08/12 15:33:56 false
+```
+
+### struct
+
+定義
+```go
+type person struct {
+	name string
+	age int
+	pet string
+}
+```
+
+沒有逗號分隔。可在任何區塊級別定義 `struct`。
+
+宣告該 struct 型態的變數
+```go
+var fred person
+```
+
+使用*常值*宣告
+
+```go
+bob := person{}
+julia := person{
+	"Julia",
+	40,
+	"cat",
+}
+beth := person{
+	name: "Beth",
+	age: 40,
+}
+```
+
+對於 `julia` 的常值順序必須對應 `struct` 定義的順序
+
+```go
+func main() {
+	var fred person
+	log.Printf("fred: %v", fred)
+	bob := person{}
+	julia := person{
+		"Julia",
+		40,
+		"cat",
+	}
+	beth := person{
+		name: "Beth",
+		age:  40,
+	}
+
+	bob.name = "Bob"
+	log.Printf("bob: %v", bob)
+	log.Printf("julia: %v", julia)
+	log.Printf("beth name: %s", beth.name)
+}
+// 2023/08/12 15:58:32 fred: { 0 }
+// 2023/08/12 15:58:32 bob: {Bob 0 }
+// 2023/08/12 15:58:32 julia: {Julia 40 cat}
+// 2023/08/12 15:58:32 beth name: Beth
+```
+
+如果再定義變數時 `struct` 加入額外欄位將會錯誤。
+
+### 匿名 struct
+宣告變數實作一個 struct 型態，但是先不幫該 struct 型態指定名稱，這稱為*匿名 struct*
+
+```go
+var person struct {
+	name string
+	age int
+	pet string
+}
+person.name = "bob"
+person.age = 20
+person.pet = "dog"
+
+pet := struct {
+	name string
+	kind string
+} {
+	name: "Fido",
+	kind: "dog"
+}
+```
+
+匿名 struct 在兩種情況下方便
+1. 將外部資料轉換到 struct 裡面，或將 struct 轉換成外部資料時(JSON/協定緩衝)，基本上就是 *unmarshal* 或是 *marshal*。
+2. 編寫測試
+
+### 比較與轉換 struct
+一個 `struct` 能否比較取決於定義的*欄位*。當欄位都是可比較欄位是可比較的，如果存在 slice、map 欄位則否。Go 沒有方法定義相等性。
+
+當兩個 struct 的欄位有相同名稱、順序與型態的話，可以相互轉換 struct。對於匿名 struct 則有不同，當有一個匿名 struct 時，與其它 struct 欄位、順序、型態，可*比較它們*，也可*相互賦值*。
+
+```go
+
+type firstPerson struct {
+	name string
+	age  int
+}
+
+func main() {
+	f := firstPerson{
+		name: "Bob",
+		age:  50,
+	}
+	var g struct {
+		name string
+		age  int
+	}
+
+	g = f
+	log.Printf("g: %v", g)
+	log.Printf(" f == g : %v", f == g)
+}
+// 2023/08/12 19:05:53 g: {Bob 50}
+// 2023/08/12 19:05:53  f == g : true
+```
